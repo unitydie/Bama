@@ -91,3 +91,43 @@ Fokusstiler på interaktive elementer
 Bruker Remove.bg API
  for å automatisk fjerne bakgrunnen fra bilder.
 API-nøkkelen legges inn i admin.html
+
+
+
+🧪 Teknologier brukt
+Teknologi	Formål
+HTML5 / CSS3 / JavaScript	Grunnstruktur og funksjonalitet
+localStorage API	Mock-database for smoothies
+Fetch API	Henter data fra mock-API
+Remove.bg API	Automatisk bakgrunnsfjerning
+Service Worker	Offline-støtte
+Font Awesome	Ikoner
+📷 Skjermbilder og testing
+
+Applikasjonen fungerer også uten internett (offline-modus testet)
+
+Adminpanelet lagrer data lokalt
+
+Karusellen oppdateres dynamisk etter oppdatering
+
+Bakgrunn fjernes automatisk via API (visuelt bekreftet)
+
+💬 Refleksjon
+
+Prosjektet viser hvordan man kan bygge en profesjonell webapp uten backend,
+ved å bruke moderne nettleser-API-er (LocalStorage, Service Worker, Fetch).
+
+Utfordringen var å kombinere dynamisk data fra data.json og brukerens egne produkter,
+men løsningen ble stabil etter at datahåndtering og caching ble strukturert.
+
+Gjennom arbeidet har jeg lært:
+
+Hvordan mocke et API lokalt
+
+Hvordan kombinere API-data og brukerdata
+
+Hvordan legge til offline-støtte
+
+Hvordan bruke Remove.bg API
+
+Hvordan sikre universell utforming og WCAG-kompatibilitet
