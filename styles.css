@@ -995,6 +995,149 @@ body.light-mode .ingredients-list label {
   color: #1a1a1a !important;
 }
 
+/* === Fix layout for product GIF inside order modal === */
+.pour-pane {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.pour-frame {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 260px;
+  margin: 0 auto;
+  border-radius: 12px;
+  overflow: hidden;
+  background: transparent;
+}
+
+.pour-frame img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.pour-caption {
+  margin-top: 8px;
+  color: #fff;
+  font-weight: 600;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* === GIF fix: left-aligned layout === */
+.modal-body {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr; /* слева гифка, справа форма */
+  gap: 24px;
+  align-items: start;
+}
+
+.pour-pane {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.pour-frame {
+  max-width: 260px;
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: transparent;
+}
+
+#pour-gif {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+  object-fit: contain;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.pour-caption {
+  margin-top: 8px;
+  color: #fff;
+  font-weight: 600;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* === Fix: Расположение гифки и формы в модальном окне === */
+.modal-body {
+  display: grid;
+  grid-template-columns: 280px 1fr; /* слева гифка, справа форма */
+  gap: 30px;
+  align-items: flex-start;
+  padding: 10px 20px 30px 20px;
+}
+
+.pour-pane {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+}
+
+.pour-frame {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: transparent;
+}
+
+#pour-gif {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  border-radius: 10px;
+}
+
+.pour-caption {
+  margin-top: 8px;
+  font-weight: 600;
+  color: #1a1a1a;
+  text-align: center;
+}
+
+/* === Форма справа === */
+.modal-body form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* === Для тёмной темы (чтобы текст оставался белым) === */
+body:not(.light-mode) .modal-body,
+body:not(.light-mode) .pour-caption {
+  color: #fff !important;
+}
+
+body:not(.light-mode) .modal-body input,
+body:not(.light-mode) .modal-body textarea,
+body:not(.light-mode) .modal-body select {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+body:not(.light-mode) .modal-body label {
+  color: #fff;
+}
+
+
 /* === Всегда белый текст и элементы в модальном окне === */
 .modal-content {
   color: #fff !important;
@@ -1059,6 +1202,7 @@ body.light-mode .modal-content {
 body.light-mode .modal-content * {
   color: #fff !important;
 }
+
 
 
 @keyframes fadeIn {

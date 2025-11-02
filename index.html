@@ -96,41 +96,57 @@
   </section>
 
   <!-- Modal -->
-  <div id="order-modal" class="modal">
-    <div class="modal-content">
-      <button class="modal-close" onclick="closeOrderForm()">&times;</button>
-      <h2 id="order-title">Bestill produkt</h2>
-      <div class="modal-body">
-        <div class="pour-pane">
-         <div class="pour-frame">
-  <div class="tenor-gif-embed" data-postid="27238415" data-share-method="host" data-aspect-ratio="1" data-width="100%">
-    <a href="https://tenor.com/view/elite-gif-27238415">Elite Sticker</a> from 
-    <a href="https://tenor.com/search/elite-stickers">Elite Stickers</a>
-  </div>
-</div>
-<script async src="https://tenor.com/embed.js" type="text/javascript"></script>
+<div id="order-modal" class="modal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeOrderForm()">&times;</button>
+    <h2 id="order-title">Bestill produkt</h2>
 
-          <div class="pour-caption"><strong id="pour-name">—</strong></div>
+    <div class="modal-body">
+      <!-- Левая часть: гифка и подпись -->
+      <div class="pour-pane">
+        <div class="pour-frame">
+          <img src="Images/gif/AnanasMangoGif.gif" alt="Ananas og mango smoothie" id="pour-gif">
         </div>
-        <div class="info-pane">
-          <div class="typed-wrap"><div id="typed-line" class="typed-line"></div></div>
-          <form id="order-form" onsubmit="submitOrder(event)">
-            <div class="form-group"><label>Produkt</label><input id="product-name" name="product" readonly /></div>
-            <div class="form-group"><label>Navn *</label><input id="customer-name" name="name" required /></div>
-            <div class="form-group"><label>E-post *</label><input id="customer-email" name="email" type="email" required /></div>
-            <div class="form-group"><label>Telefon *</label><input id="customer-phone" name="phone" type="tel" required /></div>
-            <div class="form-group"><label>Antall *</label><input id="quantity" name="quantity" type="number" min="1" value="1" required /></div>
-            <div class="form-group"><label>Leveringsadresse *</label><textarea id="delivery-address" name="address" rows="3" required></textarea></div>
-            <div class="form-group"><label>Kommentarer</label><textarea id="comments" name="comments" rows="3"></textarea></div>
-            <div class="form-actions">
-              <button type="button" class="btn-secondary" onclick="closeOrderForm()">Avbryt</button>
-              <button type="submit" class="btn-primary">Send bestilling</button>
-            </div>
-          </form>
+        <div class="pour-caption">
+          <strong id="pour-name">Ananas og mango</strong>
         </div>
       </div>
+
+      <!-- Правая часть: описание и форма -->
+      <form id="order-form" onsubmit="submitOrder(event)">
+        <div class="typed-wrap">
+          <div id="typed-line" class="typed-line"></div>
+        </div>
+
+        <label for="product-name">Produkt</label>
+        <input id="product-name" name="product" readonly>
+
+        <label for="customer-name">Navn *</label>
+        <input id="customer-name" name="name" required>
+
+        <label for="customer-email">E-post *</label>
+        <input id="customer-email" name="email" type="email" required>
+
+        <label for="customer-phone">Telefon *</label>
+        <input id="customer-phone" name="phone" type="tel" required>
+
+        <label for="quantity">Antall *</label>
+        <input id="quantity" name="quantity" type="number" min="1" value="1" required>
+
+        <label for="delivery-address">Leveringsadresse *</label>
+        <textarea id="delivery-address" name="address" rows="3" required></textarea>
+
+        <label for="comments">Kommentarer</label>
+        <textarea id="comments" name="comments" rows="3"></textarea>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" onclick="closeOrderForm()">Avbryt</button>
+          <button type="submit" class="btn-primary">Send bestilling</button>
+        </div>
+      </form>
     </div>
   </div>
+</div>
 
   <!-- Floating quick order -->
   <div class="floating-order collapsed" id="floating-order">

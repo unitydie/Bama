@@ -25,19 +25,19 @@ function performSearch() {
 /* ===== Modal order form ===== */
 const PRODUCTS = {
   "Ananas og mango": {
-    gif: "Images/gif/ananas_mango.gif",
+    gif: "Images/AnanasMangoGif.gif",
     info: "Frisk og tropisk blanding: mango, ananas, eple og pasjonsfrukt.\n250 ml · Uten tilsatt sukker · Kilde til C-vitamin."
   },
   "Blåbær og eple": {
-    gif: "Images/gif/blabaer_eple.gif",
+    gif: "Images/BlabaerEpleGif.gif",
     info: "Fyldig smak av blåbær med frisk eple og et hint av solbær.\n250 ml · 1 av 5 om dagen."
   },
   "Bringebær og jordbær": {
-    gif: "Images/gif/bringebaer_jordbaer.gif",
+    gif: "Images/BringebaerJordbaerGif.gif",
     info: "Søt og bærfrisk: bringebær, jordbær, eple.\nPerfekt som snack eller på farten."
   },
   "Kiwi og eple": {
-    gif: "Images/gif/kiwi_eple.gif",
+    gif: "Images/KiwiEpleGif.gif",
     info: "Grønn og frisk miks: kiwi og eple.\nGir deg energi og et friskt kick – uten tilsatt sukker."
   }
 };
@@ -64,18 +64,32 @@ function typeText(el, text, speed = 18) {
   }, speed);
 }
 
+/* === GIF mapping for each smoothie === */
+const smoothieGifs = {
+  "Ananas og mango": "Images/AnanasMangoGif.gif",
+  "Blåbær og eple": "Images/BlabaerEpleGif.gif",
+  "Bringebær og jordbær": "Images/BringebaerJordbaerGif.gif",
+  "Kiwi og eple": "Images/KiwiEpleGif.gif"
+};
+
+/* ====== Open Order Form (left GIF position) ====== */
 function openOrderForm(productName) {
   const modal = document.getElementById("order-modal");
   const title = document.getElementById("order-title");
   const nameInp = document.getElementById("product-name");
   const nameEl = document.getElementById("pour-name");
   const typedEl = document.getElementById("typed-line");
+  const gifEl = document.getElementById("pour-gif");
 
   nameInp.value = productName || "";
   title.textContent = "Bestill produkt";
   nameEl.textContent = productName || "";
 
-  const meta = PRODUCTS[productName] || null;
+  // Меняем гифку в зависимости от выбранного смузи
+  const meta = PRODUCTS[productName] || {};
+  const gifPath = smoothieGifs[productName] || meta.gif || "Images/default.gif";
+  if (gifEl) gifEl.src = gifPath;
+
   typeText(typedEl, meta?.info || "Utvalgt smoothie.", 16);
 
   modal.classList.add("active");
@@ -234,39 +248,14 @@ function animateTo(delta) {
 function carouselNext() { animateTo(+1); }
 function carouselPrev() { animateTo(-1); }
 
-function onPointerDown(e) {
-  if (animating) return;
-  isDragging = true;
-  dragStartX = e.clientX || (e.touches && e.touches[0].clientX);
-}
-
-function onPointerMove(e) {
-  if (!isDragging || animating) return;
-  const x = e.clientX || (e.touches && e.touches[0].clientX);
-  const dx = x - dragStartX;
-  accumulatedDeg = dx * 0.25;
-  update3D();
-}
-
-function onPointerUp() {
-  if (!isDragging || animating) return;
-  isDragging = false;
-  const snapped = Math.round(accumulatedDeg / angleStep);
-  accumulatedDeg = 0;
-  if (snapped !== 0) animateTo(-snapped);
-  else update3D();
-}
-
 /* === Загрузка mock-data и запуск === */
 document.addEventListener('DOMContentLoaded', async () => {
   async function loadSmoothies() {
     try {
-      // --- читаем из data.json (базовый список)
       const res = await fetch("data.json");
       const baseData = await res.json();
       const baseSmoothies = Array.isArray(baseData.smoothies) ? baseData.smoothies : [];
 
-      // --- читаем из LocalStorage (новые добавленные)
       const stored = localStorage.getItem("adminSmoothies");
       let localSmoothies = [];
       if (stored) {
@@ -278,11 +267,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       }
 
-      // --- объединяем (data.json + localStorage)
-      const allSmoothies = [...baseSmoothies, ...localSmoothies];
-
-      console.log("✅ Итоговый список смузи:", allSmoothies);
-      return allSmoothies;
+      return [...baseSmoothies, ...localSmoothies];
     } catch (err) {
       console.error("❌ Ошибка загрузки:", err);
       return [];
@@ -290,7 +275,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   const smoothies = await loadSmoothies();
-  console.log("🍹 Всего смузи найдено:", smoothies.length);
 
   if (!smoothies.length) {
     document.getElementById("carousel3d").innerHTML =
@@ -312,7 +296,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     </div>
   `).join("");
 
-  // --- восстанавливаем 3D вращение
   cards = Array.from(document.querySelectorAll("#carousel3d .card"));
   setup3D();
   update3D();
