@@ -1,0 +1,9 @@
+{
+  "smoothies": [
+    { "id": 1, "name": "Ananas og mango", "ingredients": "Mango, ananas, eple, pasjonsfrukt", "image": "Images/AnanasMango.png" },
+    { "id": 2, "name": "Blåbær og eple", "ingredients": "Blåbær, eple, banan, solbær", "image": "Images/BlabaerEple.png" },
+    { "id": 3, "name": "Bringebær og jordbær", "ingredients": "Bringebær, jordbær, eple", "image": "Images/BringebaerJordbaer.png" },
+    { "id": 4, "name": "Kiwi og eple", "ingredients": "Kiwi, eple", "image": "Images/KiwiEple.png" }
+  ]
+}
+
