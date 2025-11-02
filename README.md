@@ -131,3 +131,21 @@ Hvordan legge til offline-støtte
 Hvordan bruke Remove.bg API
 
 Hvordan sikre universell utforming og WCAG-kompatibilitet
+
+
+👨‍💻 For å teste offline
+
+Åpne index.html
+
+Trykk F12 → Network → Velg «Offline»
+
+Oppdater siden
+→ Applikasjonen skal fremdeles fungere.
+
+📍 Kort oppsummering av bruk
+
+Åpne admin.html, legg til ny smoothie via bilde-URL fra
+https://www.bama.no/produkter/smoothies/
+.
+Bildet får automatisk fjernet bakgrunn via API, og produktet vises i karusellen
+etter oppdatering (Ctrl + Shift + R).
