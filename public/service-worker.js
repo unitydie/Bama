@@ -40,6 +40,11 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  if (url.pathname.startsWith("/admin")) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
   // 2) Для скриптов и документов — network-first (чтобы обновления прилетали сразу)
   if (event.request.destination === "script" || event.request.destination === "document") {
     event.respondWith(

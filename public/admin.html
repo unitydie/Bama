@@ -57,10 +57,11 @@
       max-width: 480px;
       margin: 30px auto;
     }
+    .form-group { margin-bottom: 10px; }
+    label { display:block; font-weight:600; margin-bottom: 4px; }
     input {
       width: 100%;
       padding: 10px;
-      margin: 6px 0;
       border: 1px solid #ccc;
       border-radius: 6px;
       font-size: 15px;
@@ -73,9 +74,30 @@
     .loader.active {
       display: block;
     }
+    .topbar {
+      position: fixed; top: 12px; right: 12px; z-index: 10;
+      display: flex; gap: 8px;
+    }
   </style>
 </head>
 <body>
+
+  <!-- Проверка авторизации: неавторизованных уводим на логин -->
+  <script>
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(r => r.json())
+      .then(me => { if (!me.authenticated) location.href = '/admin-login.html'; });
+  </script>
+
+  <div class="topbar">
+    <button id="logoutBtn">Logg ut</button>
+  </div>
+  <script>
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await fetch('/api/auth/logout', { method:'POST', credentials:'include' });
+      location.href = '/admin-login.html';
+    });
+  </script>
 
   <h1>🧃 Adminpanel – Smoothies</h1>
 
@@ -94,122 +116,136 @@
   <div class="form-container">
     <h3><i class="fa fa-plus"></i> Legg til ny smoothie</h3>
     <form id="addForm">
-      <input type="text" id="name" placeholder="Navn" required />
-      <input type="text" id="ingredients" placeholder="Ingredienser" required />
-      <input type="url" id="image" placeholder="Bilde (URL)" required />
+      <div class="form-group">
+        <label for="name">Navn</label>
+        <input type="text" id="name" placeholder="Navn" required />
+      </div>
+      <div class="form-group">
+        <label for="ingredients">Ingredienser</label>
+        <input type="text" id="ingredients" placeholder="Ingredienser" required />
+      </div>
+      <div class="form-group">
+        <label for="image">Bilde (URL)</label>
+        <input type="url" id="image" placeholder="Bilde (URL)" required />
+      </div>
       <div class="loader" id="loader">🌀 Behandler bildet... vennligst vent</div>
       <button type="submit">Legg til</button>
     </form>
   </div>
 
   <script>
-  const API_KEY = "Ri77YTZ6LffapymeE3ioKzvW"; // Remove.bg
+    const API_KEY = "Ri77YTZ6LffapymeE3ioKzvW"; // Remove.bg
 
-  const tableBody = document.querySelector("#smoothieTable tbody");
-  const addForm = document.getElementById("addForm");
-  const loader = document.getElementById("loader");
+    const tableBody = document.querySelector("#smoothieTable tbody");
+    const addForm = document.getElementById("addForm");
+    const loader = document.getElementById("loader");
 
-  // === Грузим из БД ===
-  async function loadTable() {
-    tableBody.innerHTML = "";
-    try {
-      const res = await fetch("/api/products", { cache: "no-store" });
-      if (!res.ok) throw new Error("API error " + res.status);
-      const items = await res.json();
+    // === Грузим из БД ===
+    async function loadTable() {
+      tableBody.innerHTML = "";
+      try {
+        const res = await fetch("/api/products", { cache: "no-store" });
+        if (!res.ok) throw new Error("API error " + res.status);
+        const items = await res.json();
 
-      items.forEach((s) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${s.name}</td>
-          <td>${s.ingredients}</td>
-          <td><img src="${s.image}" alt="${s.name}" style="width:100px; border-radius:6px;"></td>
-          <td><button data-id="${s.id}" class="del-btn"><i class="fa fa-trash"></i> Slett</button></td>
-        `;
-        tableBody.appendChild(row);
-      });
-
-      // Удаление из БД
-      tableBody.querySelectorAll(".del-btn").forEach((btn) => {
-        btn.addEventListener("click", async () => {
-          const id = btn.getAttribute("data-id");
-          if (!confirm("Slette denne smoothien?")) return;
-          const delRes = await fetch(`/api/products/${id}`, { method: "DELETE" });
-          if (!delRes.ok) return alert("Kunne ikke slette.");
-          loadTable();
+        items.forEach((s) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${s.name}</td>
+            <td>${s.ingredients}</td>
+            <td><img src="${s.image}" alt="${s.name}" style="width:100px; border-radius:6px;"></td>
+            <td><button data-id="${s.id}" class="del-btn"><i class="fa fa-trash"></i> Slett</button></td>
+          `;
+          tableBody.appendChild(row);
         });
-      });
-    } catch (e) {
-      console.error(e);
-      alert("Kunne ikke laste produkter");
+
+        // Удаление из БД (нужна авторизация → шлём cookie)
+        tableBody.querySelectorAll(".del-btn").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-id");
+            if (!confirm("Slette denne smoothien?")) return;
+            const delRes = await fetch(`/api/products/${id}`, { method: "DELETE", credentials: "include" });
+            if (!delRes.ok) {
+              const j = await delRes.json().catch(() => ({}));
+              return alert(j.error || "Kunne ikke slette.");
+            }
+            loadTable();
+          });
+        });
+      } catch (e) {
+        console.error(e);
+        alert("Kunne ikke laste produkter");
+      }
     }
-  }
 
-  // === Добавление в БД (remove.bg на фронте) ===
-  addForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
+    // === Добавление в БД (remove.bg на фронте) ===
+    addForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-    const name = document.getElementById("name").value.trim();
-    const ingredients = document.getElementById("ingredients").value.trim();
-    const imageUrl = document.getElementById("image").value.trim();
+      const name = document.getElementById("name").value.trim();
+      const ingredients = document.getElementById("ingredients").value.trim();
+      const imageUrl = document.getElementById("image").value.trim();
 
-    if (!name || !ingredients || !imageUrl) {
-      alert("Vennligst fyll ut alle feltene!");
-      return;
-    }
+      if (!name || !ingredients || !imageUrl) {
+        alert("Vennligst fyll ut alle feltene!");
+        return;
+      }
 
-    loader.classList.add("active");
-    try {
-      // 1) убираем фон на remove.bg
-      const formData = new FormData();
-      formData.append("image_url", imageUrl);
-      formData.append("size", "auto");
+      loader.classList.add("active");
+      try {
+        // 1) убираем фон на remove.bg
+        const formData = new FormData();
+        formData.append("image_url", imageUrl);
+        formData.append("size", "auto");
 
-      const res = await fetch("https://api.remove.bg/v1.0/removebg", {
-        method: "POST",
-        headers: { "X-Api-Key": API_KEY },
-        body: formData
-      });
-      if (!res.ok) throw new Error("Remove.bg feilet!");
-
-      // 2) читаем как base64
-      const blob = await res.blob();
-      const reader = new FileReader();
-
-      reader.onloadend = async () => {
-        const base64data = reader.result; // data:image/png;base64,...
-
-        // 3) сохраняем в БД
-        const apiRes = await fetch("/api/products", {
+        const res = await fetch("https://api.remove.bg/v1.0/removebg", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, ingredients, image: base64data })
+          headers: { "X-Api-Key": API_KEY },
+          body: formData
         });
+        if (!res.ok) throw new Error("Remove.bg feilet!");
 
+        // 2) читаем как base64
+        const blob = await res.blob();
+        const reader = new FileReader();
+
+        reader.onloadend = async () => {
+          const base64data = reader.result; // data:image/png;base64,...
+
+          // 3) сохраняем в БД (нужна авторизация → cookie)
+          const apiRes = await fetch("/api/products", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ name, ingredients, image: base64data })
+          });
+
+          loader.classList.remove("active");
+
+          if (!apiRes.ok) {
+            const j = await apiRes.json().catch(() => ({}));
+            console.error(j);
+            return alert(j.error || "Kunne ikke lagre i databasen.");
+          }
+
+          alert("✅ Smoothie lagret i DB!");
+          addForm.reset();
+          loadTable();
+        };
+
+        reader.readAsDataURL(blob);
+      } catch (err) {
+        console.error("❌ Feil:", err);
         loader.classList.remove("active");
+        alert("Feil under bildebehandling eller lagring.");
+      }
+    });
 
-        if (!apiRes.ok) {
-          console.error(await apiRes.text());
-          return alert("Kunne ikke lagre i databasen.");
-        }
+    // старт
+    loadTable();
 
-        alert("✅ Smoothie lagret i DB!");
-        addForm.reset();
-        loadTable();
-      };
-
-      reader.readAsDataURL(blob);
-    } catch (err) {
-      console.error("❌ Feil:", err);
-      loader.classList.remove("active");
-      alert("Feil under bildebehandling eller lagring.");
-    }
-  });
-
-  // старт
-  loadTable();
-
-  // (опционально) чистим старый localStorage, чтобы не путал:
-  localStorage.removeItem("adminSmoothies");
+    // на всякий случай чистим старый localStorage, чтобы не путал:
+    localStorage.removeItem("adminSmoothies");
   </script>
 
 </body>
