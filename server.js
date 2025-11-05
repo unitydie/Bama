@@ -78,6 +78,23 @@ db.serialize(() => {
     )
   `);
 
+  // Заказы
+db.run(`
+  CREATE TABLE IF NOT EXISTS orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    product_id INTEGER,
+    product_name TEXT NOT NULL,
+    customer_name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    quantity INTEGER NOT NULL,
+    address TEXT NOT NULL,
+    comments TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(product_id) REFERENCES products(id)
+  )
+`);
+
   // Сидим продукты из public/data.json, если пусто
   db.get('SELECT COUNT(*) AS cnt FROM products', (err, row) => {
     if (err) return console.error(err);
@@ -211,6 +228,71 @@ app.delete('/api/products/:id', authRequired, (req, res) => {
     res.json({ ok: true });
   });
 });
+
+// === ORDERS API ===
+
+// создать заказ (публично)
+app.post('/api/orders', (req, res) => {
+  const {
+    productId,      // опционально (если знаешь id)
+    product,        // обязательное название (product_name)
+    name,           // customer_name
+    email,
+    phone,
+    quantity,
+    address,
+    comments
+  } = req.body || {};
+
+  if (!product || !name || !email || !phone || !quantity || !address) {
+    return res.status(400).json({ error: 'Missing fields' });
+  }
+
+  const q = `
+    INSERT INTO orders (product_id, product_name, customer_name, email, phone, quantity, address, comments)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+  db.run(q, [
+    Number.isInteger(productId) ? productId : null,
+    String(product),
+    String(name),
+    String(email),
+    String(phone),
+    Number(quantity),
+    String(address),
+    comments ? String(comments) : null
+  ], function (err) {
+    if (err) return res.status(500).json({ error: 'DB insert error' });
+    db.get('SELECT * FROM orders WHERE id = ?', [this.lastID], (e, row) => {
+      if (e) return res.status(500).json({ error: 'DB fetch error' });
+      res.status(201).json(row);
+    });
+  });
+});
+
+// получить все заказы (только админ)
+app.get('/api/orders', authRequired, (req, res) => {
+  db.all(`
+    SELECT id, product_id, product_name, customer_name, email, phone, quantity, address, comments, created_at
+    FROM orders
+    ORDER BY created_at DESC
+  `, (err, rows) => {
+    if (err) return res.status(500).json({ error: 'DB error' });
+    res.json(rows);
+  });
+});
+
+// удалить заказ (только админ)
+app.delete('/api/orders/:id', authRequired, (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) return res.status(400).json({ error: 'Bad id' });
+  db.run('DELETE FROM orders WHERE id = ?', [id], function (err) {
+    if (err) return res.status(500).json({ error: 'DB delete error' });
+    if (this.changes === 0) return res.status(404).json({ error: 'Not found' });
+    res.json({ ok: true });
+  });
+});
+
 
 // ---------- Fallback (Express v5 дружелюбный) ----------
 /**

@@ -104,40 +104,97 @@ function closeOrderForm() {
   if (_twTimer) { clearInterval(_twTimer); _twTimer = null; }
 }
 
-function submitOrder(e) {
+/* === Отправка заказа из модалки === */
+// === Отправка заказа из модалки ===
+window.submitOrder = function (e) {
   e.preventDefault();
-  const d = Object.fromEntries(new FormData(e.target).entries());
-  alert(`Takk! Vi kontakter deg på ${d.email}.\n\nProdukt: ${d.product}\nAntall: ${d.quantity}`);
-  closeOrderForm();
-}
+  const form = e.target;
+  console.log('[submitOrder] start');
 
-// Открытие формы при клике на кнопку "Bestill"
-document.addEventListener('click', (e) => {
-  const btn = e.target.closest('.order-btn');
-  if (btn) openOrderForm(btn.dataset.product || btn.textContent.trim() || 'Smoothie');
-});
+  const d = Object.fromEntries(new FormData(form).entries());
+  if (!d.product || !d.name || !d.email || !d.phone || !d.quantity || !d.address) {
+    alert('Vennligst fyll ut alle feltene!');
+    return;
+  }
+
+  fetch('/api/orders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      productId: null,
+      product: d.product,
+      name: d.name,
+      email: d.email,
+      phone: d.phone,
+      quantity: Number(d.quantity || 1),
+      address: d.address,
+      comments: d.comments || ''
+    })
+  })
+  .then(async (r) => {
+    let j = {};
+    try { j = await r.json(); } catch {}
+    console.log('[submitOrder] response', r.status, j);
+    if (!r.ok || !j.id) throw new Error(j.error || 'Order error');
+    alert(`Takk! Bestilling #${j.id} registrert. Vi kontakter deg på ${j.email}.`);
+    closeOrderForm();
+  })
+  .catch(err => {
+    console.error('[submitOrder] error:', err);
+    alert('Kunne ikke sende bestillingen.');
+  });
+};
+
+
 
 /* ===== Floating custom smoothie form ===== */
 function toggleFloatingOrder() {
   document.getElementById('floating-order')?.classList.toggle('collapsed');
 }
 
-function submitFloatingOrder(e) {
+// === Отправка кастомного заказа (плавающая форма) ===
+window.submitFloatingOrder = function (e) {
   e.preventDefault();
+  console.log('[submitFloatingOrder] start');
+
   const formData = new FormData(e.target);
   const d = Object.fromEntries(formData.entries());
-  const ingredients = [...formData.getAll("ingredients")].join(", ") || "Ingen ingredienser valgt";
+  const ingredients = [...formData.getAll("ingredients")].join(", ");
 
-  alert(`Takk for bestillingen din! 🧃
-Smoothie: ${d.smoothie}
-Ingredienser: ${ingredients}
-Antall: ${d.quantity}
-E-post: ${d.email}
-Kommentar: ${d.comment || "Ingen"}`);
+  if (!d.smoothie || !d.email || !d.quantity) {
+    alert('Vennligst fyll ut feltene (navn, e-post, antall).');
+    return;
+  }
 
-  e.target.reset();
-  toggleFloatingOrder();
-}
+  fetch('/api/orders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      productId: null,
+      product: d.smoothie + (ingredients ? ` (${ingredients})` : ''),
+      name: 'Custom order',
+      email: d.email,
+      phone: 'N/A',
+      quantity: Number(d.quantity || 1),
+      address: 'Custom smoothie',
+      comments: d.comment || ''
+    })
+  })
+  .then(async (r) => {
+    let j = {};
+    try { j = await r.json(); } catch {}
+    console.log('[submitFloatingOrder] response', r.status, j);
+    if (!r.ok || !j.id) throw new Error(j.error || 'Order error');
+    alert(`Takk! Bestilling #${j.id} registrert. Vi sender bekreftelse til ${j.email}.`);
+    e.target.reset();
+    toggleFloatingOrder();
+  })
+  .catch(err => {
+    console.error('[submitFloatingOrder] error:', err);
+    alert('Kunne ikke sende bestillingen.');
+  });
+};
+
 
 /* ===== Меню: контентные разделы ===== */
 function openSection(id) {
@@ -153,7 +210,6 @@ function closeSections() {
   document.body.style.overflow = 'auto';
 }
 
-// Привязка к меню
 document.addEventListener('DOMContentLoaded', () => {
   const nav = document.querySelectorAll('.sidebar .nav-item');
   if (nav.length >= 3) {
@@ -163,19 +219,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// Закрытие разделов по Escape
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     closeSections();
     document.getElementById('sidebar')?.classList.remove('active');
   }
-});
-
-// Сохраняем последнюю «кастомную» форму (не товары!)
-document.getElementById('floating-order-form')?.addEventListener('submit', e => {
-  e.preventDefault();
-  const data = Object.fromEntries(new FormData(e.target));
-  localStorage.setItem('lastSmoothie', JSON.stringify(data));
 });
 
 /* ===== 3D CAROUSEL ===== */
@@ -247,17 +295,16 @@ function carouselPrev() { animateTo(-1); }
 /* === ГЛАВНОЕ: грузим товары из БД через API === */
 document.addEventListener('DOMContentLoaded', async () => {
   async function fetchProducts() {
-  try {
-    const res = await fetch(`/api/products?ts=${Date.now()}`, { cache: 'no-store' });
-    if (!res.ok) throw new Error('API error ' + res.status);
-    const smoothies = await res.json();
-    return Array.isArray(smoothies) ? smoothies : [];
-  } catch (err) {
-    console.error("❌ Feil ved henting:", err);
-    return [];
+    try {
+      const res = await fetch('/api/products');
+      if (!res.ok) throw new Error('API error');
+      const smoothies = await res.json();
+      return Array.isArray(smoothies) ? smoothies : [];
+    } catch (err) {
+      console.error("❌ Feil ved henting:", err);
+      return [];
+    }
   }
-}
-
 
   const smoothies = await fetchProducts();
 
@@ -298,8 +345,32 @@ function toggleTheme() {
   localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
 }
 
+// 🌗 тема при загрузке
 window.addEventListener('load', () => {
   if (localStorage.getItem('theme') === 'light') {
     document.body.classList.add('light-mode');
   }
 });
+  // Принудительная привязка обработчика на всякий случай
+  const formEl = document.getElementById('order-form');
+  if (formEl) {
+    formEl.removeEventListener('submit', window.submitOrder);
+    formEl.addEventListener('submit', window.submitOrder);
+    console.log('[bind] order-form handler attached (openOrderForm)');
+  }
+
+
+// ✅ Вешаем обработчики сразу после построения DOM
+document.addEventListener('DOMContentLoaded', () => {
+  const orderFormEl = document.getElementById('order-form');
+  if (orderFormEl) {
+    orderFormEl.addEventListener('submit', window.submitOrder);
+    console.log('[bind] order-form handler attached (DOMContentLoaded)');
+  }
+  const floatFormEl = document.getElementById('floating-order-form');
+  if (floatFormEl) {
+    floatFormEl.addEventListener('submit', window.submitFloatingOrder);
+    console.log('[bind] floating-order-form handler attached (DOMContentLoaded)');
+  }
+});
+

@@ -7,82 +7,28 @@
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f6fbf2;
-      color: #000;
-      padding: 40px;
-    }
-    h1 {
-      text-align: center;
-      color: #7cb342;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    th, td {
-      border: 1px solid #cce0b3;
-      padding: 10px 14px;
-      text-align: left;
-    }
-    th {
-      background: #7cb342;
-      color: white;
-    }
-    tr:nth-child(even) {
-      background: #f1f8e9;
-    }
-    button {
-      background: #7cb342;
-      border: none;
-      color: #fff;
-      padding: 8px 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    button:hover {
-      background: #5e9935;
-    }
-    .form-container {
-      background: white;
-      border-radius: 8px;
-      padding: 20px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
-      max-width: 480px;
-      margin: 30px auto;
-    }
+    body { font-family: Arial, sans-serif; background: #f6fbf2; color: #000; padding: 40px; }
+    h1 { text-align: center; color: #7cb342; }
+    h3 { color:#2e7d32; margin-top: 32px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; box-shadow: 0 6px 16px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; background:#fff; }
+    th, td { border: 1px solid #cce0b3; padding: 10px 14px; text-align: left; vertical-align: top; }
+    th { background: #7cb342; color: white; }
+    tr:nth-child(even) { background: #f1f8e9; }
+    button { background: #7cb342; border: none; color: #fff; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    button:hover { background: #5e9935; }
+    .form-container { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 6px 16px rgba(0,0,0,0.1); max-width: 480px; margin: 30px auto; }
     .form-group { margin-bottom: 10px; }
     label { display:block; font-weight:600; margin-bottom: 4px; }
-    input {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 15px;
-    }
-    .loader {
-      display: none;
-      text-align: center;
-      margin: 10px 0;
-    }
-    .loader.active {
-      display: block;
-    }
-    .topbar {
-      position: fixed; top: 12px; right: 12px; z-index: 10;
-      display: flex; gap: 8px;
-    }
+    input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; }
+    .loader { display: none; text-align: center; margin: 10px 0; }
+    .loader.active { display: block; }
+    .topbar { position: fixed; top: 12px; right: 12px; z-index: 10; display: flex; gap: 8px; }
+    .muted { color:#4d4d4d; font-size:12px; }
   </style>
 </head>
 <body>
 
-  <!-- Проверка авторизации: неавторизованных уводим на логин -->
+  <!-- Проверка авторизации -->
   <script>
     fetch('/api/auth/me', { credentials: 'include' })
       .then(r => r.json())
@@ -101,6 +47,8 @@
 
   <h1>🧃 Adminpanel – Smoothies</h1>
 
+  <!-- Продукты -->
+  <h3>🗂️ Produkter</h3>
   <table id="smoothieTable">
     <thead>
       <tr>
@@ -115,6 +63,7 @@
 
   <div class="form-container">
     <h3><i class="fa fa-plus"></i> Legg til ny smoothie</h3>
+    <p class="muted">Bakgrunn fjernes automatisk via Remove.bg.</p>
     <form id="addForm">
       <div class="form-group">
         <label for="name">Navn</label>
@@ -133,6 +82,26 @@
     </form>
   </div>
 
+  <!-- Заказы -->
+  <h3>📦 Bestillinger</h3>
+  <table id="ordersTable">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Produkt</th>
+        <th>Kunde</th>
+        <th>E-post</th>
+        <th>Telefon</th>
+        <th>Antall</th>
+        <th>Adresse</th>
+        <th>Kommentar</th>
+        <th>Tid</th>
+        <th>Handling</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
   <script>
     const API_KEY = "Ri77YTZ6LffapymeE3ioKzvW"; // Remove.bg
 
@@ -140,7 +109,7 @@
     const addForm = document.getElementById("addForm");
     const loader = document.getElementById("loader");
 
-    // === Грузим из БД ===
+    // === Продукты: загрузка ===
     async function loadTable() {
       tableBody.innerHTML = "";
       try {
@@ -159,7 +128,7 @@
           tableBody.appendChild(row);
         });
 
-        // Удаление из БД (нужна авторизация → шлём cookie)
+        // Удаление (нужна авторизация → шлём cookie)
         tableBody.querySelectorAll(".del-btn").forEach((btn) => {
           btn.addEventListener("click", async () => {
             const id = btn.getAttribute("data-id");
@@ -178,7 +147,7 @@
       }
     }
 
-    // === Добавление в БД (remove.bg на фронте) ===
+    // === Продукты: добавление (Remove.bg на фронте) ===
     addForm.addEventListener("submit", async (e) => {
       e.preventDefault();
 
@@ -193,7 +162,7 @@
 
       loader.classList.add("active");
       try {
-        // 1) убираем фон на remove.bg
+        // 1) убираем фон через Remove.bg
         const formData = new FormData();
         formData.append("image_url", imageUrl);
         formData.append("size", "auto");
@@ -205,14 +174,14 @@
         });
         if (!res.ok) throw new Error("Remove.bg feilet!");
 
-        // 2) читаем как base64
+        // 2) читаем blob как base64
         const blob = await res.blob();
         const reader = new FileReader();
 
         reader.onloadend = async () => {
           const base64data = reader.result; // data:image/png;base64,...
 
-          // 3) сохраняем в БД (нужна авторизация → cookie)
+          // 3) сохраняем в БД (требуется cookie → credentials: include)
           const apiRes = await fetch("/api/products", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -241,10 +210,50 @@
       }
     });
 
-    // старт
-    loadTable();
+    // === Заказы: загрузка/удаление ===
+    async function loadOrders() {
+      const tbody = document.querySelector('#ordersTable tbody');
+      tbody.innerHTML = '';
+      try {
+        const res = await fetch('/api/orders', { credentials: 'include', cache: 'no-store' });
+        if (!res.ok) throw new Error('API error ' + res.status);
+        const rows = await res.json();
+        rows.forEach(o => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${o.id}</td>
+            <td>${o.product_name}</td>
+            <td>${o.customer_name}</td>
+            <td>${o.email}</td>
+            <td>${o.phone}</td>
+            <td>${o.quantity}</td>
+            <td>${o.address}</td>
+            <td>${o.comments || ''}</td>
+            <td>${new Date(o.created_at).toLocaleString()}</td>
+            <td><button class="order-del" data-id="${o.id}">Slett</button></td>
+          `;
+          tbody.appendChild(tr);
+        });
+        tbody.querySelectorAll('.order-del').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            if (!confirm('Slette bestilling?')) return;
+            const id = btn.getAttribute('data-id');
+            const r = await fetch(`/api/orders/${id}`, { method:'DELETE', credentials:'include' });
+            if (!r.ok) return alert('Kunne ikke slette.');
+            loadOrders();
+          });
+        });
+      } catch(e) {
+        console.error(e);
+        alert('Kunne ikke laste bestillinger');
+      }
+    }
 
-    // на всякий случай чистим старый localStorage, чтобы не путал:
+    // Запуск
+    loadTable();
+    loadOrders();
+
+    // На всякий случай чистим старый localStorage, чтобы не путал:
     localStorage.removeItem("adminSmoothies");
   </script>
 
