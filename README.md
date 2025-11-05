@@ -1,151 +1,161 @@
 🍏 BAMA Smoothie Webapp
 
-En avansert webapplikasjon som viser BAMA sine smoothies og lar deg legge til nye produkter gjennom et administrasjonspanel.
-Løsningen støtter offline-bruk, har lys/mørk modus, og bruker Remove.bg API for å automatisk fjerne bakgrunnen på bilder.
+En avansert webapplikasjon som viser BAMA sine smoothies og lar deg administrere produkter via et sikkert adminpanel med ekte database og API.
+Løsningen ble utvidet som tilleggsoppgaver (challenge features) — blant annet med autentisering, database (SQLite) og server-backend i Express.
 
 🧩 Funksjonalitet
 
-Viser produkter fra et mock-API (data.json)
+✅ Viser produkter direkte fra SQLite-database
+✅ Fullt fungerende Express API (/api/products)
+✅ Adminpanel med innlogging (/admin-login.html)
+✅ Legg til og slett smoothies i sanntid
+✅ Automatisk fjerning av bildebakgrunn via Remove.bg API
+✅ Beskyttet rute – kun innloggede brukere får tilgang
+✅ Offline-støtte via Service Worker
+✅ Lys / mørk modus
+✅ Tilgjengelighetsvennlig design (WCAG 2.1)
 
-Kombinerer data fra localStorage (admin-panel)
+🧠 Nye funksjoner (Challenge-utvidelse)
 
-3D-karusell for visning av smoothies
+Disse punktene ble lagt til i denne fasen:
 
-Eget adminpanel (admin.html) med:
+🧱 Node.js + Express backend
+→ Kjører lokalt på http://localhost:3000
+→ Henter og lagrer produkter i data.sqlite
 
-Legg til, slett og rediger smoothies (mock-CRUD)
+🔐 Autentisering med cookies
+→ /api/auth/login – innlogging
+→ /api/auth/me – sjekker status
+→ /api/auth/logout – logger ut
 
-Automatisk fjerning av bildebakgrunn via Remove.bg API
+🗄️ Persistent database (SQLite)
+→ Oppretter data.sqlite ved første kjøring
+→ Importerer startdata fra public/data.json
+→ Nye smoothies lagres i databasen
 
-Offline-støtte via Service Worker
+🧃 Adminpanel oppdatert
+→ Bruker fetch('/api/products', { credentials:'include' })
+→ Fungerer kun etter innlogging
+→ Fjern bakgrunn via Remove.bg API automatisk
 
-Tilgjengelighetsvennlig design (alt-tekst, kontrast, tastaturnavigasjon)
+⚙️ Hvordan starte prosjektet
 
-Lys og mørk visning (brukerens valg lagres lokalt)
+1️⃣ Klon repoet:
 
-📘 Brukerveiledning
+git clone https://github.com/unitydie/Bama.git
+cd Bama
+
+
+2️⃣ Installer avhengigheter:
+
+npm install
+
+
+3️⃣ Start serveren:
+
+npm start
+
+
+4️⃣ Åpne i nettleser:
+
+http://localhost:3000
+
+
+5️⃣ Gå til admin-login:
+
+http://localhost:3000/admin-login.html
+
+
+6️⃣ Logg inn med testbruker:
+
+E-post: admin@bama.local
+Passord: Admin123
+
 🧃 Hvordan bruke adminpanelet
 
-Gå til nettsiden
-👉 https://www.bama.no/produkter/smoothies/
+Legg til ny smoothie ved å fylle ut:
 
-Kopier bilde-URL til ønsket smoothie (høyreklikk → Kopier bildeadresse)
+Navn
 
-Åpne admin.html i prosjektet ditt
+Ingredienser
 
-Fyll ut feltene:
+Bilde (URL) → Kopier fra bama.no/produkter/smoothies
 
-Navn – navnet på smoothien
+Systemet sender bildet til Remove.bg
+→ Bakgrunnen fjernes automatisk
+→ Produktet lagres i databasen
 
-Ingredienser – hva den inneholder
+Oppdater siden (Ctrl + Shift + R)
+→ Ny smoothie vises i 3D-karusellen på hovedsiden
 
-Bilde (URL) – lenken du kopierte fra BAMA
-
-Trykk «Legg til»
-→ Bildet sendes automatisk til Remove.bg
-→ Bakgrunnen fjernes
-→ Produktet lagres i localStorage
-
-Åpne index.html og trykk Ctrl + Shift + R
-(hard refresh) for å vise de nye produktene i karusellen.
-
-
+📂 Prosjektstruktur
 / (prosjektmappe)
-│
-├── index.html           → Hovedside med karusell
-├── admin.html           → Adminpanel (mock-CRUD)
-├── styles.css           → Felles stilark
-├── script.js            → Hovedlogikk og funksjoner
-├── data.json            → Mock-data for standard smoothies
-├── service-worker.js    → Offline-støtte
-└── README.md            → Dokumentasjon
+├── server.js              → Express-server med SQLite og auth
+├── package.json
+├── /public
+│   ├── index.html         → Hovedside med karusell
+│   ├── admin.html         → Adminpanel (beskyttet)
+│   ├── admin-login.html   → Innloggingsside
+│   ├── script.js          → Frontend-logikk
+│   ├── styles.css         → Stilark
+│   ├── data.json          → Startdata
+│   ├── service-worker.js  → Offline-støtte
+│   └── /Images            → Illustrasjoner og GIF-er
+└── data.sqlite            → Database (opprettes automatisk)
 
-🧠 Teknisk forklaring
-Datakilde
+| Metode   | Rute                | Beskrivelse            |
+| -------- | ------------------- | ---------------------- |
+| `GET`    | `/api/products`     | Hent alle produkter    |
+| `POST`   | `/api/products`     | Legg til nytt produkt  |
+| `DELETE` | `/api/products/:id` | Slett produkt          |
+| `POST`   | `/api/auth/login`   | Logg inn               |
+| `POST`   | `/api/auth/logout`  | Logg ut                |
+| `GET`    | `/api/auth/me`      | Sjekk innlogget status |
 
-Produktene lastes fra data.json
+| Teknologi             | Formål                           |
+| --------------------- | -------------------------------- |
+| **Node.js + Express** | Server og API                    |
+| **SQLite3**           | Database                         |
+| **Remove.bg API**     | Fjerner bakgrunn på bilder       |
+| **Fetch API**         | Kommunikasjon frontend ↔ backend |
+| **Service Worker**    | Offline-støtte                   |
+| **Font Awesome**      | Ikoner                           |
+| **CORS / Helmet**     | Sikkerhet                        |
+| **dotenv**            | Miljøvariabler (API-nøkler)      |
 
-Nye produkter fra adminpanelet lagres i localStorage
+🧩 Testing og debugging
 
-Ved lasting av siden kombineres begge kilder
-
-Offline-funksjon
-
-En service worker cacher alle nødvendige filer første gang siden lastes
-
-Applikasjonen fungerer deretter også uten internett
-
-Tilgjengelighet
-
-Alle bilder har alt-tekst
-
-Tastaturnavigasjon er aktiv
-
-Lys/mørk-modus med høy kontrast (WCAG 2.1)
-
-Fokusstiler på interaktive elementer
-
-
-🌐 API-integrasjon
-
-Bruker Remove.bg API
- for å automatisk fjerne bakgrunnen fra bilder.
-API-nøkkelen legges inn i admin.html
-
-
-
-🧪 Teknologier brukt
-Teknologi	Formål
-HTML5 / CSS3 / JavaScript	Grunnstruktur og funksjonalitet
-localStorage API	Mock-database for smoothies
-Fetch API	Henter data fra mock-API
-Remove.bg API	Automatisk bakgrunnsfjerning
-Service Worker	Offline-støtte
-Font Awesome	Ikoner
-📷 Skjermbilder og testing
-
-Applikasjonen fungerer også uten internett (offline-modus testet)
-
-Adminpanelet lagrer data lokalt
-
-Karusellen oppdateres dynamisk etter oppdatering
-
-Bakgrunn fjernes automatisk via API (visuelt bekreftet)
+✅ Test innlogging via /admin-login.html
+✅ Legg til ny smoothie og sjekk DB (data.sqlite)
+✅ Hard refresh (Ctrl + Shift + R) på hovedsiden → ny vises
+✅ Test offline i DevTools → applikasjonen fungerer
+✅ Sjekk Network → Remove.bg får 200 OK
 
 💬 Refleksjon
 
-Prosjektet viser hvordan man kan bygge en profesjonell webapp uten backend,
-ved å bruke moderne nettleser-API-er (LocalStorage, Service Worker, Fetch).
+Dette prosjektet startet som en ren frontend-løsning, men ble utvidet med ekte backend, database og autentisering som en utfordringsoppgave.
+Resultatet ble en komplett webapplikasjon med realistisk arkitektur, sikkerhet og API-integrasjon.
 
-Utfordringen var å kombinere dynamisk data fra data.json og brukerens egne produkter,
-men løsningen ble stabil etter at datahåndtering og caching ble strukturert.
+Gjennom dette lærte jeg:
 
-Gjennom arbeidet har jeg lært:
+Hvordan bygge et REST API i Express
 
-Hvordan mocke et API lokalt
+Hvordan integrere autentisering med cookies
 
-Hvordan kombinere API-data og brukerdata
+Hvordan kombinere frontend og backend med CORS og CSP
 
-Hvordan legge til offline-støtte
+Hvordan håndtere eksterne API-er (Remove.bg) trygt
 
-Hvordan bruke Remove.bg API
+Hvordan designe et robust adminpanel med ekte dataflyt
 
-Hvordan sikre universell utforming og WCAG-kompatibilitet
+📍 Kort oppsummering
 
+Start serveren → npm start
 
-👨‍💻 For å teste offline
+Logg inn via /admin-login.html
 
-Åpne index.html
+Legg til produkt → API håndterer Remove.bg og lagring
 
-Trykk F12 → Network → Velg «Offline»
+Gå til /index.html → se produktet i 3D-karusellen
 
-Oppdater siden
-→ Applikasjonen skal fremdeles fungere.
-
-📍 Kort oppsummering av bruk
-
-Åpne admin.html, legg til ny smoothie via bilde-URL fra
-https://www.bama.no/produkter/smoothies/
-.
-Bildet får automatisk fjernet bakgrunn via API, og produktet vises i karusellen
-etter oppdatering (Ctrl + Shift + R).
+Fungerer både online og offline
