@@ -1,161 +1,212 @@
-🍏 BAMA Smoothie Webapp
+🍏 **BAMA Smoothie Webapp**
 
-En avansert webapplikasjon som viser BAMA sine smoothies og lar deg administrere produkter via et sikkert adminpanel med ekte database og API.
-Løsningen ble utvidet som tilleggsoppgaver (challenge features) — blant annet med autentisering, database (SQLite) og server-backend i Express.
+En komplett webapplikasjon som viser BAMA sine smoothies og lar deg administrere produkter og bestillinger via et sikkert adminpanel med ekte database og API.  
+Prosjektet ble utvidet som *challenge features* med autentisering, database (SQLite), backend i Express, bestillingssystem og e-postvarsler.
 
-🧩 Funksjonalitet
+---
 
-✅ Viser produkter direkte fra SQLite-database
-✅ Fullt fungerende Express API (/api/products)
-✅ Adminpanel med innlogging (/admin-login.html)
-✅ Legg til og slett smoothies i sanntid
-✅ Automatisk fjerning av bildebakgrunn via Remove.bg API
-✅ Beskyttet rute – kun innloggede brukere får tilgang
-✅ Offline-støtte via Service Worker
-✅ Lys / mørk modus
+## 🧩 Funksjonalitet
+
+✅ Viser produkter direkte fra SQLite-database  
+✅ Fullt fungerende Express API (`/api/products`, `/api/orders`)  
+✅ Adminpanel med innlogging og sesjons-cookies  
+✅ Legg til og slett smoothies i sanntid  
+✅ Automatisk fjerning av bildebakgrunn via Remove.bg API  
+✅ Registrering av kunde-bestillinger med lagring i DB  
+✅ Automatisk e-post-varsler til kunde og administrator  
+✅ Offline-støtte via Service Worker  
+✅ Lys / mørk modus  
 ✅ Tilgjengelighetsvennlig design (WCAG 2.1)
 
-🧠 Nye funksjoner (Challenge-utvidelse)
+---
 
-Disse punktene ble lagt til i denne fasen:
+## 🧱 Backend (Node.js + Express)
 
-🧱 Node.js + Express backend
-→ Kjører lokalt på http://localhost:3000
-→ Henter og lagrer produkter i data.sqlite
+- Kjører lokalt på: **http://localhost:3000**
+- Håndterer både produkter og bestillinger
+- Bruker SQLite som vedvarende database (`data.sqlite`)
+- Har autentisering med JWT + cookies
+- Har CORS, Helmet og Rate-limiting for sikkerhet
 
-🔐 Autentisering med cookies
-→ /api/auth/login – innlogging
-→ /api/auth/me – sjekker status
-→ /api/auth/logout – logger ut
+---
 
-🗄️ Persistent database (SQLite)
-→ Oppretter data.sqlite ved første kjøring
-→ Importerer startdata fra public/data.json
-→ Nye smoothies lagres i databasen
+## 🔐 Autentisering med cookies
 
-🧃 Adminpanel oppdatert
-→ Bruker fetch('/api/products', { credentials:'include' })
-→ Fungerer kun etter innlogging
-→ Fjern bakgrunn via Remove.bg API automatisk
+| Rute | Metode | Beskrivelse |
+|------|---------|-------------|
+| `/api/auth/login` | POST | Logger inn admin |
+| `/api/auth/logout` | POST | Logger ut |
+| `/api/auth/me` | GET | Sjekker innloggingsstatus |
 
-⚙️ Hvordan starte prosjektet
+Bruker **JWT-token i cookie**, slik at admin-panelet automatisk validerer sesjonen uten at passord sendes på nytt.
 
-1️⃣ Klon repoet:
+---
 
+## 🗄️ Database (SQLite)
+
+Opprettes automatisk første gang serveren starter.
+
+| Tabell | Beskrivelse |
+|--------|--------------|
+| `products` | Alle smoothies (navn, ingredienser, bilde) |
+| `users` | Administratorer (e-post og passord-hash) |
+| `orders` | Bestillinger fra kunder |
+
+---
+
+## 🧃 Adminpanel (admin.html)
+
+- Beskyttet rute — krever innlogging via `/admin-login.html`  
+- Viser tabell over alle smoothies fra databasen  
+- Kan **legge til nye produkter** (Remove.bg brukes automatisk)  
+- Kan **slette produkter**  
+- Viser **alle kunde-bestillinger** (fra `orders`-tabellen)  
+- Kan **slette bestillinger** direkte
+
+---
+
+## 🛒 Ny funksjonalitet: Bestillingssystem
+
+Når kunden legger inn en bestilling på hovedsiden (`index.html`):
+
+1. Skjemaet i modalen sender en `POST /api/orders` til serveren.  
+2. Serveren lagrer bestillingen i tabellen `orders` med alle felter:  
+   – produktnavn, navn, e-post, telefon, antall, adresse, kommentarer, tidspunkt.  
+3. Administrator kan se alle bestillinger i admin-panelet.  
+4. (Challenge 2) Serveren sender automatisk e-post:
+   - 📩 til **kunden** – bekreftelse på bestilling  
+   - 📧 til **admin** – varsel om ny ordre  
+
+---
+
+## 📬 E-postintegrasjon (Nodemailer + Gmail App Password)
+
+For å aktivere varsler:
+
+1️⃣ Aktiver **2-trinnsbekreftelse** i Google-kontoen.  
+2️⃣ Gå til [https://myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)  
+3️⃣ Opprett nytt «App-passord» for *Mail → Other (Custom name)*  
+4️⃣ Legg til i `.env`-filen:
+
+log pass mail .env file
+
+
+Serveren bruker Nodemailer til å sende e-post gjennom Gmail.  
+Når en ordre opprettes, sendes automatisk:
+
+- **Til kunde:** «Takk for din bestilling hos BAMA Smoothies!»  
+- **Til admin:** «Ny bestilling mottatt – se detaljer i adminpanelet.»
+
+---
+
+## ⚙️ Hvordan starte prosjektet
+
+```bash
+Set-ExecutionPolicy Unrestricted -Scope Process
+
+# 1️⃣ Klon repoet
 git clone https://github.com/unitydie/Bama.git
 cd Bama
 
-
-2️⃣ Installer avhengigheter:
-
+# 2️⃣ Installer avhengigheter
 npm install
 
-
-3️⃣ Start serveren:
-
+# 3️⃣ Start serveren
 npm start
 
 
-4️⃣ Åpne i nettleser:
+Deretter:
 
-http://localhost:3000
+🟢 Brukergrensesnitt:
+👉 http://localhost:3000
 
+🟢 Adminpanel:
+👉 http://localhost:3000/admin.html
 
-5️⃣ Gå til admin-login:
+🟢 Innlogging:
+👉 http://localhost:3000/admin-login.html
 
-http://localhost:3000/admin-login.html
-
-
-6️⃣ Logg inn med testbruker:
+Login:
 
 E-post: admin@bama.local
-Passord: Admin123
+Passord: Admin123!
 
 🧃 Hvordan bruke adminpanelet
 
-Legg til ny smoothie ved å fylle ut:
+1️⃣ Logg inn
+2️⃣ Legg til ny smoothie (navn, ingredienser, bilde-URL)
+3️⃣ Systemet sender bildet til Remove.bg
+4️⃣ Bakgrunnen fjernes automatisk
+5️⃣ Produktet lagres i databasen
+6️⃣ Oppdater hovedsiden → produktet vises i 3D-karusellen
 
-Navn
+Bestillinger:
 
-Ingredienser
+Nye ordrer fra kunder vises automatisk i adminpanelet
 
-Bilde (URL) → Kopier fra bama.no/produkter/smoothies
+Admin kan slette bestillinger
 
-Systemet sender bildet til Remove.bg
-→ Bakgrunnen fjernes automatisk
-→ Produktet lagres i databasen
-
-Oppdater siden (Ctrl + Shift + R)
-→ Ny smoothie vises i 3D-karusellen på hovedsiden
+Kunde og admin mottar e-postvarsler
 
 📂 Prosjektstruktur
 / (prosjektmappe)
-├── server.js              → Express-server med SQLite og auth
+├── server.js              → Express-server (API, DB, e-post)
+├── data.sqlite            → Database
+├── .env                   → API-nøkler og Gmail-passord
 ├── package.json
 ├── /public
-│   ├── index.html         → Hovedside med karusell
-│   ├── admin.html         → Adminpanel (beskyttet)
-│   ├── admin-login.html   → Innloggingsside
+│   ├── index.html         → Hovedside (bestilling)
+│   ├── admin.html         → Adminpanel
+│   ├── admin-login.html   → Innlogging
 │   ├── script.js          → Frontend-logikk
-│   ├── styles.css         → Stilark
+│   ├── styles.css         → Design
 │   ├── data.json          → Startdata
-│   ├── service-worker.js  → Offline-støtte
-│   └── /Images            → Illustrasjoner og GIF-er
-└── data.sqlite            → Database (opprettes automatisk)
+│   └── service-worker.js  → Offline-støtte
 
-| Metode   | Rute                | Beskrivelse            |
-| -------- | ------------------- | ---------------------- |
-| `GET`    | `/api/products`     | Hent alle produkter    |
-| `POST`   | `/api/products`     | Legg til nytt produkt  |
-| `DELETE` | `/api/products/:id` | Slett produkt          |
-| `POST`   | `/api/auth/login`   | Logg inn               |
-| `POST`   | `/api/auth/logout`  | Logg ut                |
-| `GET`    | `/api/auth/me`      | Sjekk innlogget status |
-
-| Teknologi             | Formål                           |
-| --------------------- | -------------------------------- |
-| **Node.js + Express** | Server og API                    |
-| **SQLite3**           | Database                         |
-| **Remove.bg API**     | Fjerner bakgrunn på bilder       |
-| **Fetch API**         | Kommunikasjon frontend ↔ backend |
-| **Service Worker**    | Offline-støtte                   |
-| **Font Awesome**      | Ikoner                           |
-| **CORS / Helmet**     | Sikkerhet                        |
-| **dotenv**            | Miljøvariabler (API-nøkler)      |
-
-🧩 Testing og debugging
+🧪 Testing
 
 ✅ Test innlogging via /admin-login.html
-✅ Legg til ny smoothie og sjekk DB (data.sqlite)
-✅ Hard refresh (Ctrl + Shift + R) på hovedsiden → ny vises
-✅ Test offline i DevTools → applikasjonen fungerer
-✅ Sjekk Network → Remove.bg får 200 OK
+✅ Legg til og slett produkter
+✅ Opprett bestilling på hovedsiden
+✅ Sjekk at ordren vises i adminpanelet
+✅ Se e-postvarsel i Gmail
+✅ Test offline i DevTools (Network → Offline)
 
 💬 Refleksjon
 
-Dette prosjektet startet som en ren frontend-løsning, men ble utvidet med ekte backend, database og autentisering som en utfordringsoppgave.
-Resultatet ble en komplett webapplikasjon med realistisk arkitektur, sikkerhet og API-integrasjon.
+Dette prosjektet viser en komplett løsning fra frontend til backend.
+Det kombinerer sikker autentisering, database-operasjoner, fil- og API-håndtering, samt sanntids-oppdatering av UI.
 
-Gjennom dette lærte jeg:
+Gjennom arbeidet lærte jeg:
 
-Hvordan bygge et REST API i Express
+Hvordan bygge REST-API i Express
 
-Hvordan integrere autentisering med cookies
+Hvordan integrere SQLite som lettvekts-database
 
-Hvordan kombinere frontend og backend med CORS og CSP
+Hvordan bruke JWT + cookies for sesjoner
 
-Hvordan håndtere eksterne API-er (Remove.bg) trygt
+Hvordan koble Remove.bg API og sende filer
 
-Hvordan designe et robust adminpanel med ekte dataflyt
+Hvordan sende e-post med Nodemailer
 
-📍 Kort oppsummering
+Hvordan sikre applikasjonen med Helmet og rate-limiting
 
-Start serveren → npm start
+Hvordan lage et ekte adminpanel for CRUD- og ordre-håndtering
 
-Logg inn via /admin-login.html
 
-Legg til produkt → API håndterer Remove.bg og lagring
 
-Gå til /index.html → se produktet i 3D-karusellen
+| Handling         | Hva skjer                              |
+| ---------------- | -------------------------------------- |
+| Start server     | `npm start`                            |
+| Åpne siden       | `http://localhost:3000`                |
+| Bestill smoothie | Lagres i DB + e-post til kunde & admin |
+| Logg inn         | `/admin-login.html`                    |
+| Se ordrer        | `/admin.html`                          |
+| Offline          | Full funksjonalitet via Service Worker |
 
-Fungerer både online og offline
+✨ Ferdig resultat:
+En sikker, komplett webapp for BAMA Smoothies med backend, autentisering, bestillinger og e-postvarsling.
+
+
+
+
