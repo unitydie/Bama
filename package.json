@@ -1,0 +1,27 @@
+{
+  "name": "bama",
+  "version": "1.0.0",
+  "description": "🍏 BAMA Smoothie Webapp",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unitydie/Bama.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/unitydie/Bama/issues"
+  },
+  "homepage": "https://github.com/unitydie/Bama#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^5.1.0",
+    "sqlite3": "^5.1.7"
+  }
+}

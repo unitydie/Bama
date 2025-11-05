@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BAMA - Smoothies og juice</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div id="sidebar" class="sidebar">
+    <button class="close-btn" onclick="toggleMenu()">&times;</button>
+    <div class="search-container">
+      <input type="text" id="sidebar-search" placeholder="Søk etter" class="search-input" />
+      <button onclick="performSearch()" class="search-btn" aria-label="Søk">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.134 17 3 13.866 3 10C3 6.134 6.134 3 10 3C13.866 3 17 6.134 17 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item">Råvarer</a>
+      <a href="#" class="nav-item">Smoothies og juice</a>
+      <a href="#" class="nav-item">Om BAMA</a>
+    </nav>
+    <div class="sidebar-divider"></div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+  <button id="menuBtn" class="menu-btn" onclick="toggleMenu()" aria-label="Meny">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+      <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  </button>
+
+  <!-- 🌗 Кнопка переключения темы -->
+  <button id="themeToggle" onclick="toggleTheme()" class="theme-btn" title="Bytt tema">☀️ / 🌙</button>
+
+  <div class="logo" aria-label="bama">
+    <img src="https://www.bama.no/siteassets/bama/logo/logo-1.svg" alt="Bama logo" class="bama-logo">
+  </div>
+</header>
+
+
+  <!-- Hero -->
+  <section class="hero">
+  <h1>Smoothies</h1>
+  <p class="hero-description">
+    Bendit Smoothier består utelukkende av moste frukter, bær og grønnsaker, og juice av disse.
+    Smoothiene er uten tilsatt sukker og kommer ikke fra konsentrat.
+    Nyt smoothien som et lite måltid hjemme eller når du er på farten,
+    så kommer du nærmere målet om «5 om dagen».
+  </p>
+</section>
+
+  <!-- 3D Carousel -->
+  <section class="carousel-3d-section">
+    <div class="carousel-viewport">
+      <div class="carousel-3d" id="carousel3d">
+        
+      </div>
+      <button id="prev3d" class="nav3d prev3d" aria-label="Forrige">❮</button>
+      <button id="next3d" class="nav3d next3d" aria-label="Neste">❯</button>
+    </div>
+    <div class="dots3d" id="dots3d"></div>
+  </section>
+
+  <!-- Modal -->
+<div id="order-modal" class="modal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeOrderForm()">&times;</button>
+    <h2 id="order-title">Bestill produkt</h2>
+
+    <div class="modal-body">
+      <!-- Левая часть: гифка и подпись -->
+      <div class="pour-pane">
+        <div class="pour-frame">
+          <img src="Images/gif/AnanasMangoGif.gif" alt="Ananas og mango smoothie" id="pour-gif">
+        </div>
+        <div class="pour-caption">
+          <strong id="pour-name">Ananas og mango</strong>
+        </div>
+      </div>
+
+      <!-- Правая часть: описание и форма -->
+      <form id="order-form" onsubmit="submitOrder(event)">
+        <div class="typed-wrap">
+          <div id="typed-line" class="typed-line"></div>
+        </div>
+
+        <label for="product-name">Produkt</label>
+        <input id="product-name" name="product" readonly>
+
+        <label for="customer-name">Navn *</label>
+        <input id="customer-name" name="name" required>
+
+        <label for="customer-email">E-post *</label>
+        <input id="customer-email" name="email" type="email" required>
+
+        <label for="customer-phone">Telefon *</label>
+        <input id="customer-phone" name="phone" type="tel" required>
+
+        <label for="quantity">Antall *</label>
+        <input id="quantity" name="quantity" type="number" min="1" value="1" required>
+
+        <label for="delivery-address">Leveringsadresse *</label>
+        <textarea id="delivery-address" name="address" rows="3" required></textarea>
+
+        <label for="comments">Kommentarer</label>
+        <textarea id="comments" name="comments" rows="3"></textarea>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" onclick="closeOrderForm()">Avbryt</button>
+          <button type="submit" class="btn-primary">Send bestilling</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+  <!-- Floating quick order -->
+  <div class="floating-order collapsed" id="floating-order">
+    <div class="floating-header" onclick="toggleFloatingOrder()"><span>🧃 Bestill custom smoothie</span><span id="floating-arrow">▲</span></div>
+    <form id="floating-order-form" onsubmit="submitFloatingOrder(event)">
+  <label for="smoothie-name">Smoothie-navn *</label>
+  <input type="text" id="smoothie-name" name="smoothie" required placeholder="Gi smoothien et navn">
+
+  <label for="ingredients">Velg ingredienser *</label>
+  <div class="ingredients-list">
+    <label><input type="checkbox" name="ingredients" value="Mango"> 🥭 Mango</label>
+    <label><input type="checkbox" name="ingredients" value="Ananas"> 🍍 Ananas</label>
+    <label><input type="checkbox" name="ingredients" value="Bringebær"> 🍓 Bringebær</label>
+    <label><input type="checkbox" name="ingredients" value="Blåbær"> 🫐 Blåbær</label>
+    <label><input type="checkbox" name="ingredients" value="Jordbær"> 🍓 Jordbær</label>
+    <label><input type="checkbox" name="ingredients" value="Eple"> 🍏 Eple</label>
+    <label><input type="checkbox" name="ingredients" value="Kiwi"> 🥝 Kiwi</label>
+    <label><input type="checkbox" name="ingredients" value="Banan"> 🍌 Banan</label>
+  </div>
+
+  <label for="smoothie-quantity">Antall *</label>
+  <input type="number" id="smoothie-quantity" name="quantity" min="1" value="1" required>
+
+  <label for="smoothie-comment">Kommentar</label>
+  <textarea id="smoothie-comment" name="comment" rows="2" placeholder="Tilpass smaken, ekstra frukt..."></textarea>
+
+  <label for="smoothie-email">E-post *</label>
+  <input type="email" id="smoothie-email" name="email" required placeholder="din@epost.no">
+
+  <button type="submit" class="floating-submit">Send bestilling</button>
+</form>
+
+  </div>
+
+<footer class="social-footer">
+  <div class="footer-info">
+    <img src="https://www.bama.no/siteassets/bama/logo/logo-1.svg" alt="BAMA logo" class="footer-logo" />
+    <p>BAMA Gruppen AS</p>
+    <p>Postboks 263</p>
+    <p>Nedre Kalbakkvei 40</p>
+    <p>Oslo, 0614 Oslo</p>
+    <p>Tlf.: 22 88 05 00</p>
+  </div>
+
+  <div class="social-container">
+    <a href="https://www.facebook.com/BAMA/" target="_blank" class="social-link"><span>Facebook</span><i class="fab fa-facebook-f"></i></a>
+    <a href="https://www.instagram.com/bamagruppen/" target="_blank" class="social-link"><span>Instagram</span><i class="fab fa-instagram"></i></a>
+    <a href="https://www.youtube.com/bamabendit" target="_blank" class="social-link"><span>YouTube</span><i class="fab fa-youtube"></i></a>
+    <a href="https://www.linkedin.com/company/48421/" target="_blank" class="social-link"><span>LinkedIn</span><i class="fab fa-linkedin-in"></i></a>
+  </div>
+</footer>
+<!-- === Контейнер для всплывающих разделов === -->
+<div id="content-sections">
+
+  <!-- 🥭 Råvarer -->
+  <section id="raw-section" class="content-section">
+  <button class="close-section" onclick="closeSections()">×</button>
+  <h2>Våre råvarer</h2>
+  <p>Bli kjent med friske frukter, bær og grønnsaker fra BAMA.</p>
+
+  <div class="grid">
+    <div class="item">
+      <img src="https://www.bama.no/siteassets/fotoware/2020/10/discovery09.jpg?height=210&mode=crop" alt="Epler">
+      <h3>Epler</h3>
+      <p>Saftige og sprø – fulle av smak og vitaminer.</p>
+    </div>
+    <div class="item">
+      <img src="https://www.bama.no/siteassets/fotoware/2023/9/bendit_bananklase-2_bama.jpg?height=210&mode=crop" alt="Bananer">
+      <h3>Bananer</h3>
+      <p>Naturlig søte, gir energi og passer perfekt i smoothie.</p>
+    </div>
+    <div class="item">
+      <img src="https://www.bama.no/siteassets/fotoware/2020/10/3-bringebar.jpg?height=210&mode=crop" alt="Bringebær">
+      <h3>Bringebær</h3>
+      <p>Smak av sommer – frisk, søt og aromatisk.</p>
+    </div>
+    <div class="item">
+      <img src="https://www.bama.no/siteassets/fotoware/2020/10/kiwi-delt.jpg?height=210&mode=crop" alt="Kiwi">
+      <h3>Kiwi</h3>
+      <p>Grønn glede – rik på C-vitamin og frisk smak.</p>
+    </div>
+    <div class="item">
+      <img src="https://www.bama.no/siteassets/fotoware/2020/12/070326_bamano04_f3.jpg?height=210&mode=crop" alt="Granateple">
+      <h3>Granateple</h3>
+      <p>Eksotisk og kraftig på smak, full av antioksidanter og frisk sødme.</p>
+    </div>
+    <div class="item">
+      <img src="https://www.bama.no/siteassets/fotoware/2020/10/fersken-dobbel.jpg?height=210&mode=crop" alt="Fersken">
+      <h3>Fersken</h3>
+      <p>Myk og saftig med delikat aroma – perfekt i dessert eller smoothie.</p>
+    </div>
+    <div class="item">
+      <img src="https://www.bama.no/siteassets/fotoware/2020/10/mango-singel.jpg?height=210&mode=crop" alt="Mango">
+      <h3>Mango</h3>
+      <p>Tropisk sødme og silkemyk tekstur – gir solskinn i hver bit.</p>
+    </div>
+    <div class="item">
+      <img src="https://www.bama.no/siteassets/fotoware/2020/10/grapefrukt_j3a4599.jpg?height=210&mode=crop" alt="Grapefrukt">
+      <h3>Grapefrukt</h3>
+      <p>Grapefrukt smaker skikkelig god, surt, søtt og bittert. Den ser litt ut som en appelsin, men er litt større og rød inni.</p>
+    </div>
+  </div>
+</section>
+
+
+
+  <!-- 🧃 Smoothies og juice -->
+  <section id="smoothie-section" class="content-section">
+    <button class="close-section" onclick="closeSections()">×</button>
+    <h2>Våre Smoothies og Juicer</h2>
+    <p>Hver flaske inneholder nøye utvalgte råvarer – uten tilsatt sukker.</p>
+    <div class="grid">
+      <div class="item"><img src="Images/AnanasMango.png" alt=""><h3>Ananas og mango</h3><p>Tropisk og forfriskende smak.</p></div>
+      <div class="item"><img src="Images/BlabaerEple.png" alt=""><h3>Blåbær og eple</h3><p>Fyldig og naturlig søt juiceblanding.</p></div>
+      <div class="item"><img src="Images/BringebaerJordbaer.png" alt=""><h3>Bringebær og jordbær</h3><p>En smak av norsk sommer.</p></div>
+    </div>
+  </section>
+
+  <!-- 🌿 Om BAMA -->
+<section id="about-section" class="content-section about-full">
+  <button class="close-section" onclick="closeSections()">×</button>
+
+  <div class="about-layout">
+    <!-- Блок 1: Основная информация -->
+    <div class="about-text">
+      <h2>Om BAMA</h2>
+      <p>
+        Vi sørger for at ferske produkter fra hele verden når ut til mange tusen kunder i hele Norge.  
+        <br><br>
+        Visjonen er å skape en sunnere og ferskere fremtid.
+      </p>
+
+      <p>
+        BAMA opererer på seks ulike virksomhetsområder i Norge, og driver utstrakt forretningsvirksomhet rundt om i verden.  
+        <br><br>
+        Det berører mange mennesker. Derfor har vi et stort ansvar for å gjøre jobben skikkelig.
+      </p>
+
+      <p>
+        Vi har et stort engasjement for etisk handel, klima og miljø, forbedring og utvikling av arbeidsforholdene i landene vi opererer i,  
+        samt økt fysisk aktivitet og høyere inntak av frukt og grønt i befolkningen.
+      </p>
+    </div>
+
+    <!-- Блок 2: Фото -->
+    <div class="about-image">
+      <img src="https://www.bama.no/siteassets/fotoware/2020/11/historie-bil.jpg?width=1300&height=800&mode=crop" alt="BAMA historie">
+    </div>
+
+    <!-- Блок 3: История -->
+    <div class="about-history">
+      <h3>Over 130 år med historie</h3>
+      <h4>En foretakksom sørlending tok bananen til Skandinavia.</h4>
+
+      <p>
+        BAMAs historie går mer enn 130 år tilbake i tid. Den startet i 1886, da Christian Marius Emil Matthiessen grunnla selskapet.
+        Han var 36 år gammel og hadde bakgrunn som seilskuteskipper og forretningsmann, med trelast som hovedbeskjeftigelse.
+      </p>
+
+      <p>
+        Den foretakssomme sørlendingen skulle vise seg å bli Skandinavias første bananimportør.
+      </p>
+
+      <p><strong>Det skjedde i 1905.</strong></p>
+
+      <p>
+        Siden den gang har selskapet vært gjennom en rekke omstillinger og vist seg svært tilpasningsdyktig gjennom to verdenskriger,
+        harde etterkrigsår og stadig tøffere konkurranseforhold.
+      </p>
+
+      <p>
+        I dag er BAMA et selskap som omfatter import og engrossalg av fersk frukt og grønt, i tillegg til å ha en meget sterk posisjon
+        innenfor ferskforedlede produkter. De senere årene har blomster og en voksende internasjonal virksomhet også bidratt sterkt
+        til resultatene.
+      </p>
+    </div>
+  </div>
+</section>
+
+<script>
+  const tableBody = document.querySelector("#smoothieTable tbody");
+  const addForm = document.getElementById("addForm");
+  const loader = document.getElementById("loader");
+
+  async function loadTable() {
+    tableBody.innerHTML = "";
+    try {
+      const res = await fetch("/api/products");
+      if (!res.ok) throw new Error("API error");
+      const items = await res.json();
+
+      items.forEach((s) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${s.name}</td>
+          <td>${s.ingredients}</td>
+          <td><img src="${s.image}" alt="${s.name}" style="width:100px; border-radius:6px;"></td>
+          <td><button data-id="${s.id}" class="del-btn"><i class="fa fa-trash"></i> Slett</button></td>
+        `;
+        tableBody.appendChild(row);
+      });
+
+      tableBody.querySelectorAll('.del-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.getAttribute('data-id');
+          if (!confirm('Slette denne smoothien?')) return;
+          const delRes = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+          if (!delRes.ok) return alert('Kunne ikke slette.');
+          loadTable();
+        });
+      });
+    } catch (e) {
+      console.error(e);
+      alert("Kunne ikke laste produkter");
+    }
+  }
+
+  // Добавление новой smoothie (remove.bg на фронте, затем POST в БД)
+  addForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById("name").value.trim();
+    const ingredients = document.getElementById("ingredients").value.trim();
+    const imageUrl = document.getElementById("image").value.trim();
+
+    if (!name || !ingredients || !imageUrl) {
+      alert("Vennligst fyll ut alle feltene!");
+      return;
+    }
+
+    loader.classList.add("active");
+
+    try {
+      const formData = new FormData();
+      formData.append("image_url", imageUrl);
+      formData.append("size", "auto");
+
+      const res = await fetch("https://api.remove.bg/v1.0/removebg", {
+        method: "POST",
+        headers: { "X-Api-Key": "Ri77YTZ6LffapymeE3ioKzvW" },
+        body: formData
+      });
+
+      if (!res.ok) throw new Error("Remove.bg feilet!");
+
+      const blob = await res.blob();
+      const reader = new FileReader();
+
+      reader.onloadend = async function () {
+        const base64data = reader.result; // data:image/png;base64,...
+
+        const apiRes = await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, ingredients, image: base64data })
+        });
+
+        loader.classList.remove("active");
+
+        if (!apiRes.ok) {
+          console.error(await apiRes.text());
+          return alert("Kunne ikke lagre i databasen.");
+        }
+
+        alert("✅ Smoothie lagt til (DB)!");
+        addForm.reset();
+        loadTable();
+      };
+
+      reader.readAsDataURL(blob);
+    } catch (err) {
+      console.error("❌ Feil:", err);
+      loader.classList.remove("active");
+      alert("Feil under bildebehandling eller lagring.");
+    }
+  });
+
+  loadTable();
+</script>
+
+
+</div>
+  <script src="script.js"></script>
+</body>
+</html>
