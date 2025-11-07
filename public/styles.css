@@ -34,7 +34,14 @@ body{
 .sidebar-links a{color:#e8f5e9}
 
 /* Header & Hero */
-.header{display:flex;align-items:center;justify-content:center;padding:14px 16px;position:relative}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* центрируем содержимое */
+  position: relative;       /* чтобы кнопки могли быть абсолютно позиционированы */
+  padding: 10px 20px;
+}
+
 .menu-btn{position:absolute;left:12px;background:none;border:0;color:#fff;cursor:pointer}
 .logo {
   position: absolute;
@@ -42,6 +49,21 @@ body{
   left: 50%;
   transform: translateX(-50%);
 }
+
+.menu-btn {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.theme-btn {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
 
 .bama-logo {
   width: 140px;
@@ -1202,6 +1224,48 @@ body.light-mode .modal-content {
 body.light-mode .modal-content * {
   color: #fff !important;
 }
+
+/* ===== Header: центрируем логотип, кнопки слева/справа ===== */
+.header{
+  position: relative !important;   /* контейнер для абсолютного позиционирования */
+  display: block !important;       /* неважно, что было до этого (flex/grid) */
+  height: 64px;                    /* подстрой под свою высоту хедера */
+}
+
+/* логотип по центру независимо от соседей */
+.header .logo{
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+  text-align: center !important;
+  pointer-events: none;            /* чтобы оверлеи не перехватывали клики по кнопкам */
+}
+
+.header .logo .bama-logo{
+  display: block;
+  max-height: 48px;                /* подстрой при необходимости */
+}
+
+/* кнопка меню — слева по центру по вертикали */
+.menu-btn{
+  position: absolute !important;
+  left: 16px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 2;
+}
+
+/* кнопка темы — справа по центру по вертикали */
+.theme-btn{
+  position: absolute !important;
+  right: 16px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 2;
+}
+
 
 @keyframes fadeIn {
   from {opacity: 0;}

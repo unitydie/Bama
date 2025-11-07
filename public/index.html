@@ -10,10 +10,10 @@
 <body>
   <!-- Sidebar -->
   <div id="sidebar" class="sidebar">
-    <button class="close-btn" onclick="toggleMenu()">&times;</button>
+    <button class="close-btn">&times;</button>
     <div class="search-container">
       <input type="text" id="sidebar-search" placeholder="Søk etter" class="search-input" />
-      <button onclick="performSearch()" class="search-btn" aria-label="Søk">
+      <button class="search-btn"class="search-btn" aria-label="Søk">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.134 17 3 13.866 3 10C3 6.134 6.134 3 10 3C13.866 3 17 6.134 17 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         </svg>
@@ -25,19 +25,18 @@
       <a href="#" class="nav-item">Om BAMA</a>
     </nav>
     <div class="sidebar-divider"></div>
-    </div>
   </div>
 
   <!-- Header -->
   <header class="header">
-  <button id="menuBtn" class="menu-btn" onclick="toggleMenu()" aria-label="Meny">
+  <button id="menuBtn" class="menu-btn">
     <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
       <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
     </svg>
   </button>
 
   <!-- 🌗 Кнопка переключения темы -->
-  <button id="themeToggle" onclick="toggleTheme()" class="theme-btn" title="Bytt tema">☀️ / 🌙</button>
+ <button id="themeToggle" class="theme-btn">☀️</button>
 
   <div class="logo" aria-label="bama">
     <img src="https://www.bama.no/siteassets/bama/logo/logo-1.svg" alt="Bama logo" class="bama-logo">
@@ -71,7 +70,7 @@
   <!-- Modal -->
 <div id="order-modal" class="modal">
   <div class="modal-content">
-    <button class="modal-close" onclick="closeOrderForm()">&times;</button>
+    <button class="modal-close">&times;</button>
     <h2 id="order-title">Bestill produkt</h2>
 
     <div class="modal-body">
@@ -113,7 +112,7 @@
         <textarea id="comments" name="comments" rows="3"></textarea>
 
         <div class="modal-actions">
-          <button type="button" class="btn-secondary" onclick="closeOrderForm()">Avbryt</button>
+          <button type="button" class="btn-secondary">Avbryt</button>
           <button type="submit" class="btn-primary">Send bestilling</button>
         </div>
       </form>
@@ -123,8 +122,8 @@
 
   <!-- Floating quick order -->
   <div class="floating-order collapsed" id="floating-order">
-    <div class="floating-header" onclick="toggleFloatingOrder()"><span>🧃 Bestill custom smoothie</span><span id="floating-arrow">▲</span></div>
-    <form id="floating-order-form" onsubmit="submitFloatingOrder(event)">
+    <div class="floating-header"><span>🧃 Bestill custom smoothie</span><span id="floating-arrow">▲</span></div>
+    <form id="floating-order-form">
   <label for="smoothie-name">Smoothie-navn *</label>
   <input type="text" id="smoothie-name" name="smoothie" required placeholder="Gi smoothien et navn">
 
@@ -176,7 +175,7 @@
 
   <!-- 🥭 Råvarer -->
   <section id="raw-section" class="content-section">
-  <button class="close-section" onclick="closeSections()">×</button>
+  <button class="close-section">×</button>
   <h2>Våre råvarer</h2>
   <p>Bli kjent med friske frukter, bær og grønnsaker fra BAMA.</p>
 
@@ -301,10 +300,11 @@
 
 <script>
   const tableBody = document.querySelector("#smoothieTable tbody");
-  const addForm = document.getElementById("addForm");
-  const loader = document.getElementById("loader");
+const addForm   = document.getElementById("addForm");
+const loader    = document.getElementById("loader");
 
-  async function loadTable() {
+if (tableBody && addForm && loader) {
+  const loadTable = async () => {
     tableBody.innerHTML = "";
     try {
       const res = await fetch("/api/products");
@@ -335,7 +335,7 @@
       console.error(e);
       alert("Kunne ikke laste produkter");
     }
-  }
+  }}
 
   // Добавление новой smoothie (remove.bg на фронте, затем POST в БД)
   addForm.addEventListener("submit", async (e) => {
@@ -402,6 +402,7 @@
 
 
 </div>
-  <script src="script.js"></script>
+  <script src="script.js" defer></script>
+
 </body>
 </html>

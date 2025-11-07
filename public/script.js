@@ -1,28 +1,33 @@
 "use strict";
 
-/* ===== Sidebar (меню) ===== */
+/* ================== ХЕЛПЕРЫ ================== */
+const $  = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+/* ================== SIDEBAR ================== */
 function toggleMenu() {
-  const sidebar = document.getElementById('sidebar');
+  const sidebar = $('#sidebar');
   if (sidebar) sidebar.classList.toggle('active');
 }
 
 // Клик вне меню — закрыть
 document.addEventListener('click', (e) => {
-  const sidebar = document.getElementById('sidebar');
-  const menuBtn = document.getElementById('menuBtn');
+  const sidebar = $('#sidebar');
+  const menuBtn = $('#menuBtn');
   if (!sidebar || !menuBtn) return;
   if (sidebar.classList.contains('active') && !sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
     sidebar.classList.remove('active');
   }
 });
 
+// Поиск в сайдбаре
 function performSearch() {
-  const q = (document.getElementById('sidebar-search')?.value || '').trim();
+  const q = ($('#sidebar-search')?.value || '').trim();
   if (!q) return alert('Vennligst skriv inn et søkeord');
   alert('Søk: ' + q);
 }
 
-/* ===== Modal order form ===== */
+/* =========== МОДАЛКА (оформление заказа) =========== */
 const PRODUCTS = {
   "Ananas og mango": {
     gif: "Images/AnanasMangoGif.gif",
@@ -43,7 +48,7 @@ const PRODUCTS = {
 };
 
 // Предзагрузка GIF
-(function preloadGIFs() {
+(() => {
   Object.values(PRODUCTS).forEach(p => {
     if (p?.gif) {
       const img = new Image();
@@ -64,7 +69,7 @@ function typeText(el, text, speed = 18) {
   }, speed);
 }
 
-/* === GIF mapping for each smoothie === */
+/* === GIF mapping (fallback) === */
 const smoothieGifs = {
   "Ananas og mango": "Images/AnanasMangoGif.gif",
   "Blåbær og eple": "Images/BlabaerEpleGif.gif",
@@ -72,20 +77,21 @@ const smoothieGifs = {
   "Kiwi og eple": "Images/KiwiEpleGif.gif"
 };
 
-/* ====== Open / Close Order Form ====== */
 function openOrderForm(productName) {
-  const modal = document.getElementById("order-modal");
-  const title = document.getElementById("order-title");
-  const nameInp = document.getElementById("product-name");
-  const nameEl = document.getElementById("pour-name");
-  const typedEl = document.getElementById("typed-line");
-  const gifEl = document.getElementById("pour-gif");
+  const modal   = $("#order-modal");
+  const title   = $("#order-title");
+  const nameInp = $("#product-name");
+  const nameEl  = $("#pour-name");
+  const typedEl = $("#typed-line");
+  const gifEl   = $("#pour-gif");
 
-  nameInp.value = productName || "";
-  title.textContent = "Bestill produkt";
-  nameEl.textContent = productName || "";
+  if (!modal) return;
 
-  const meta = PRODUCTS[productName] || {};
+  if (nameInp) nameInp.value = productName || "";
+  if (title)   title.textContent = "Bestill produkt";
+  if (nameEl)  nameEl.textContent = productName || "";
+
+  const meta    = PRODUCTS[productName] || {};
   const gifPath = smoothieGifs[productName] || meta.gif || "Images/default.gif";
   if (gifEl) gifEl.src = gifPath;
 
@@ -94,23 +100,21 @@ function openOrderForm(productName) {
   modal.classList.add("active");
   document.body.style.overflow = "hidden";
 }
+window.openOrderForm = openOrderForm; // нужно для динамических кнопок
 
 function closeOrderForm() {
-  const modal = document.getElementById("order-modal");
-  const form = document.getElementById("order-form");
-  modal.classList.remove("active");
+  const modal = $("#order-modal");
+  const form  = $("#order-form");
+  if (modal) modal.classList.remove("active");
   document.body.style.overflow = "auto";
-  form.reset();
+  form?.reset();
   if (_twTimer) { clearInterval(_twTimer); _twTimer = null; }
 }
 
-/* === Отправка заказа из модалки === */
-// === Отправка заказа из модалки ===
+/* Отправка заказа (модалка) */
 window.submitOrder = function (e) {
   e.preventDefault();
   const form = e.target;
-  console.log('[submitOrder] start');
-
   const d = Object.fromEntries(new FormData(form).entries());
   if (!d.product || !d.name || !d.email || !d.phone || !d.quantity || !d.address) {
     alert('Vennligst fyll ut alle feltene!');
@@ -134,29 +138,21 @@ window.submitOrder = function (e) {
   .then(async (r) => {
     let j = {};
     try { j = await r.json(); } catch {}
-    console.log('[submitOrder] response', r.status, j);
     if (!r.ok || !j.id) throw new Error(j.error || 'Order error');
     alert(`Takk! Bestilling #${j.id} registrert. Vi kontakter deg på ${j.email}.`);
     closeOrderForm();
   })
-  .catch(err => {
-    console.error('[submitOrder] error:', err);
-    alert('Kunne ikke sende bestillingen.');
-  });
+  .catch(() => alert('Kunne ikke sende bestillingen.'));
 };
 
-
-
-/* ===== Floating custom smoothie form ===== */
+/* ===== Плавающая форма (custom smoothie) ===== */
 function toggleFloatingOrder() {
-  document.getElementById('floating-order')?.classList.toggle('collapsed');
+  $('#floating-order')?.classList.toggle('collapsed');
 }
+window.toggleFloatingOrder = toggleFloatingOrder;
 
-// === Отправка кастомного заказа (плавающая форма) ===
 window.submitFloatingOrder = function (e) {
   e.preventDefault();
-  console.log('[submitFloatingOrder] start');
-
   const formData = new FormData(e.target);
   const d = Object.fromEntries(formData.entries());
   const ingredients = [...formData.getAll("ingredients")].join(", ");
@@ -183,48 +179,35 @@ window.submitFloatingOrder = function (e) {
   .then(async (r) => {
     let j = {};
     try { j = await r.json(); } catch {}
-    console.log('[submitFloatingOrder] response', r.status, j);
     if (!r.ok || !j.id) throw new Error(j.error || 'Order error');
     alert(`Takk! Bestilling #${j.id} registrert. Vi sender bekreftelse til ${j.email}.`);
     e.target.reset();
     toggleFloatingOrder();
   })
-  .catch(err => {
-    console.error('[submitFloatingOrder] error:', err);
-    alert('Kunne ikke sende bestillingen.');
-  });
+  .catch(() => alert('Kunne ikke sende bestillingen.'));
 };
 
-
-/* ===== Меню: контентные разделы ===== */
+/* ===== Контентные разделы (overlay) ===== */
 function openSection(id) {
-  document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+  $$('.content-section').forEach(sec => sec.classList.remove('active'));
   const el = document.getElementById(id);
   if (el) el.classList.add('active');
   document.body.style.overflow = 'hidden';
-  document.getElementById('sidebar')?.classList.remove('active');
+  $('#sidebar')?.classList.remove('active');
 }
-
 function closeSections() {
-  document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+  $$('.content-section').forEach(sec => sec.classList.remove('active'));
   document.body.style.overflow = 'auto';
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  const nav = document.querySelectorAll('.sidebar .nav-item');
-  if (nav.length >= 3) {
-    nav[0].addEventListener('click', () => openSection('raw-section'));
-    nav[1].addEventListener('click', () => openSection('smoothie-section'));
-    nav[2].addEventListener('click', () => openSection('about-section'));
-  }
-});
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    closeSections();
-    document.getElementById('sidebar')?.classList.remove('active');
-  }
-});
+function toggleTheme() {
+  document.body.classList.toggle('light-mode');
+  localStorage.setItem(
+    'theme',
+    document.body.classList.contains('light-mode') ? 'light' : 'dark'
+  );
+}
+window.toggleTheme = toggleTheme;
 
 /* ===== 3D CAROUSEL ===== */
 let currentIndex = 0;
@@ -292,8 +275,49 @@ function animateTo(delta) {
 function carouselNext() { animateTo(+1); }
 function carouselPrev() { animateTo(-1); }
 
-/* === ГЛАВНОЕ: грузим товары из БД через API === */
+/* ========== ИНИЦИАЛИЗАЦИЯ ========== */
 document.addEventListener('DOMContentLoaded', async () => {
+  // Кнопки сайдбара/темы/поиска
+  $('.close-btn')?.addEventListener('click', toggleMenu);
+  $('#menuBtn')?.addEventListener('click', toggleMenu);
+  $('.search-btn')?.addEventListener('click', performSearch);
+  $('#themeToggle')?.addEventListener('click', () => toggleTheme());
+
+  // Навигация в сайдбаре
+  const nav = $$('.sidebar .nav-item');
+  if (nav.length >= 3) {
+    nav[0].addEventListener('click', () => openSection('raw-section'));
+    nav[1].addEventListener('click', () => openSection('smoothie-section'));
+    nav[2].addEventListener('click', () => openSection('about-section'));
+  }
+
+  // Закрывашки секций и модалки
+  $$('.close-section').forEach(btn => btn.addEventListener('click', closeSections));
+  $('.modal-close')?.addEventListener('click', closeOrderForm);
+
+  // Esc закрывает всё
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closeSections();
+      $('#sidebar')?.classList.remove('active');
+      $('#order-modal')?.classList.remove('active');
+      document.body.style.overflow = 'auto';
+    }
+  });
+
+  // Тема при загрузке
+  if (localStorage.getItem('theme') === 'light') {
+    document.body.classList.add('light-mode');
+  }
+
+  // Плавающая форма
+  $('.floating-header')?.addEventListener('click', toggleFloatingOrder);
+  $('#floating-order-form')?.addEventListener('submit', window.submitFloatingOrder);
+
+  // Форма заказа в модалке
+  $('#order-form')?.addEventListener('submit', window.submitOrder);
+
+  // Карусель: грузим товары
   async function fetchProducts() {
     try {
       const res = await fetch('/api/products');
@@ -307,70 +331,149 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   const smoothies = await fetchProducts();
-
-  const carousel = document.getElementById("carousel3d");
-  if (!smoothies.length) {
-    carousel.innerHTML = "<p style='text-align:center;color:white;'>Ingen smoothies tilgjengelig</p>";
-    return;
-  }
-
-  carousel.innerHTML = smoothies.map(item => `
-    <div class="card">
-      <div class="card-inner">
-        <div class="imgbox">
-          <img src="${item.image}" alt="${item.name}">
+  const carousel = $("#carousel3d");
+  if (carousel) {
+    if (!smoothies.length) {
+      carousel.innerHTML = "<p style='text-align:center;color:white;'>Ingen smoothies tilgjengelig</p>";
+    } else {
+      carousel.innerHTML = smoothies.map(item => `
+        <div class="card">
+          <div class="card-inner">
+            <div class="imgbox">
+              <img src="${item.image}" alt="${item.name}">
+            </div>
+            <h3>${item.name}</h3>
+            <p>${item.ingredients}</p>
+            <button class="order-btn" data-product="${item.name}">Bestill</button>
+          </div>
         </div>
-        <h3>${item.name}</h3>
-        <p>${item.ingredients}</p>
-        <button class="order-btn" data-product="${item.name}">Bestill</button>
-      </div>
-    </div>
-  `).join("");
+      `).join("");
 
-  cards = Array.from(document.querySelectorAll("#carousel3d .card"));
-  setup3D();
-  update3D();
+      cards = $$("#carousel3d .card");
+      setup3D();
+      update3D();
 
-  document.getElementById("prev3d")?.addEventListener("click", carouselPrev);
-  document.getElementById("next3d")?.addEventListener("click", carouselNext);
+      $("#prev3d")?.addEventListener("click", carouselPrev);
+      $("#next3d")?.addEventListener("click", carouselNext);
 
-  document.querySelectorAll(".order-btn").forEach(btn =>
-    btn.addEventListener("click", () => openOrderForm(btn.dataset.product))
-  );
-});
-
-/* ===== Тема (светлая/тёмная) ===== */
-function toggleTheme() {
-  document.body.classList.toggle('light-mode');
-  localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
-}
-
-// 🌗 тема при загрузке
-window.addEventListener('load', () => {
-  if (localStorage.getItem('theme') === 'light') {
-    document.body.classList.add('light-mode');
-  }
-});
-  // Принудительная привязка обработчика на всякий случай
-  const formEl = document.getElementById('order-form');
-  if (formEl) {
-    formEl.removeEventListener('submit', window.submitOrder);
-    formEl.addEventListener('submit', window.submitOrder);
-    console.log('[bind] order-form handler attached (openOrderForm)');
+      $$(".order-btn").forEach(btn =>
+        btn.addEventListener("click", () => openOrderForm(btn.dataset.product))
+      );
+    }
   }
 
+  /* ====== Опциональный блок админ-таблицы (подстраховка) ====== */
+  const tableBody = $("#smoothieTable tbody");
+  const addForm   = $("#addForm");
+  const loader    = $("#loader");
+  if (tableBody && addForm && loader) {
+    const loadTable = async () => {
+      tableBody.innerHTML = "";
+      try {
+        const res = await fetch("/api/products");
+        if (!res.ok) throw new Error("API error");
+        const items = await res.json();
 
-// ✅ Вешаем обработчики сразу после построения DOM
+        items.forEach((s) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${s.name}</td>
+            <td>${s.ingredients}</td>
+            <td><img src="${s.image}" alt="${s.name}" style="width:100px; border-radius:6px;"></td>
+            <td><button data-id="${s.id}" class="del-btn"><i class="fa fa-trash"></i> Slett</button></td>
+          `;
+          tableBody.appendChild(row);
+        });
+
+        $$(".del-btn", tableBody).forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            if (!confirm('Slette denne smoothien?')) return;
+            const delRes = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+            if (!delRes.ok) return alert('Kunne ikke slette.');
+            loadTable();
+          });
+        });
+      } catch (e) {
+        console.error(e);
+        alert("Kunne ikke laste produkter");
+      }
+    };
+
+    addForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name       = $("#name")?.value.trim();
+      const ingredients= $("#ingredients")?.value.trim();
+      const imageUrl   = $("#image")?.value.trim();
+      if (!name || !ingredients || !imageUrl) {
+        alert("Vennligst fyll ut alle feltene!");
+        return;
+      }
+
+      loader.classList.add("active");
+      try {
+        const formData = new FormData();
+        formData.append("image_url", imageUrl);
+        formData.append("size", "auto");
+
+        const res = await fetch("https://api.remove.bg/v1.0/removebg", {
+          method: "POST",
+          headers: { "X-Api-Key": "Ri77YTZ6LffapymeE3ioKzvW" },
+          body: formData
+        });
+        if (!res.ok) throw new Error("Remove.bg feilet!");
+
+        const blob = await res.blob();
+        const base64data = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        });
+
+        const apiRes = await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, ingredients, image: base64data })
+        });
+
+        loader.classList.remove("active");
+        if (!apiRes.ok) {
+          console.error(await apiRes.text());
+          return alert("Kunne ikke lagre i databasen.");
+        }
+
+        alert("✅ Smoothie lagt til (DB)!");
+        addForm.reset();
+        loadTable();
+      } catch (err) {
+        console.error("❌ Feil:", err);
+        loader.classList.remove("active");
+        alert("Feil under bildebehandling eller lagring.");
+      }
+    });
+
+    loadTable();
+  }
+
+  // === Иконка кнопки темы ===
 document.addEventListener('DOMContentLoaded', () => {
-  const orderFormEl = document.getElementById('order-form');
-  if (orderFormEl) {
-    orderFormEl.addEventListener('submit', window.submitOrder);
-    console.log('[bind] order-form handler attached (DOMContentLoaded)');
-  }
-  const floatFormEl = document.getElementById('floating-order-form');
-  if (floatFormEl) {
-    floatFormEl.addEventListener('submit', window.submitFloatingOrder);
-    console.log('[bind] floating-order-form handler attached (DOMContentLoaded)');
-  }
+  const themeBtn = document.getElementById('themeToggle');
+  if (!themeBtn) return;
+
+  const updateIcon = () => {
+    const isLight = document.body.classList.contains('light-mode');
+    themeBtn.textContent = isLight ? '🌙' : '☀️';
+  };
+
+  // при клике — переключаем тему и обновляем иконку
+  themeBtn.addEventListener('click', () => {
+    toggleTheme();
+    updateIcon();
+  });
+
+  // инициализация при загрузке
+  updateIcon();
 });
 
+
+}); 
